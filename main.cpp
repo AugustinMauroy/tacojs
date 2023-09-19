@@ -4,25 +4,11 @@
 #include <JavaScriptCore/JavaScript.h>
 #include "ConsoleModule.h"
 
-int main(int argc, const char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <javascript_file.js>" << std::endl;
-        return 1;
-    }
-
-    // Initialize JavaScriptCore
-    JSGlobalContextRef context = JSGlobalContextCreate(nullptr);
-
-    // Create a Logger instance and attach it to the JavaScript context
-    ConsoleModule logger;
-    logger.attachToContext(context);
-    ConsoleModule::attachToContext(context);
-    // Load and execute the JavaScript file
-    const char* filename = argv[1];
+JSValueRef loadModule(JSGlobalContextRef context, const char* filename) {
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "Failed to open the JavaScript file: " << filename << std::endl;
-        return 1;
+        return nullptr;
     }
 
     std::string scriptContent((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
@@ -40,8 +26,28 @@ int main(int argc, const char* argv[]) {
         JSStringRelease(exceptionStr);
     }
 
-    // Cleanup
     JSStringRelease(script);
+    return result;
+}
+
+int main(int argc, const char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <javascript_file.js>" << std::endl;
+        return 1;
+    }
+
+    // Initialize JavaScriptCore
+    JSGlobalContextRef context = JSGlobalContextCreate(nullptr);
+
+    // Create a Logger instance and attach it to the JavaScript context
+    ConsoleModule logger;
+    logger.attachToContext(context);
+    ConsoleModule::attachToContext(context);
+    // Load and execute the JavaScript file
+    
+    JSValueRef result = loadModule(context, argv[1]);
+
+    // Cleanup
     JSGlobalContextRelease(context);
 
     return 0;
