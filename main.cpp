@@ -3,21 +3,53 @@
 #include <string>
 #include <JavaScriptCore/JavaScript.h>
 
-JSValueRef JSLogCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception) {
-    if (argumentCount > 0) {
-        JSStringRef message = JSValueToStringCopy(context, arguments[0], nullptr);
-        size_t bufferSize = JSStringGetMaximumUTF8CStringSize(message);
-        char* buffer = new char[bufferSize];
-        JSStringGetUTF8CString(message, buffer, bufferSize);
-        std::cout << buffer << std::endl;
-        delete[] buffer;
-        JSStringRelease(message);
+class Logger {
+public:
+    Logger() : context(nullptr), consoleObject(nullptr) {}
+
+    void log(const std::string& message) {
+        std::cout << message << std::endl;
     }
 
-    return JSValueMakeUndefined(context);
-}
+    static JSValueRef logCallback(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[], JSValueRef* exception) {
+        if (argumentCount == 0) {
+            return JSValueMakeUndefined(context);
+        }
 
-int main(int argc, const char * argv[]) {
+        JSValueRef firstArgument = arguments[0];
+        JSStringRef firstArgumentString = JSValueToStringCopy(context, firstArgument, nullptr);
+        size_t bufferSize = JSStringGetMaximumUTF8CStringSize(firstArgumentString);
+        char* buffer = new char[bufferSize];
+        JSStringGetUTF8CString(firstArgumentString, buffer, bufferSize);
+        std::string message(buffer);
+        delete[] buffer;
+        JSStringRelease(firstArgumentString);
+
+        Logger* logger = static_cast<Logger*>(JSObjectGetPrivate(function));
+        logger->log(message);
+
+        return JSValueMakeUndefined(context); 
+    }
+
+    void attachToContext(JSContextRef context) {
+        this->context = context;
+        consoleObject = JSObjectMake(context, nullptr, nullptr);
+        JSObjectSetPrivate(consoleObject, this);
+
+        JSStringRef logFunctionName = JSStringCreateWithUTF8CString("log");
+        JSObjectRef logFunction = JSObjectMakeFunctionWithCallback(context, logFunctionName, &Logger::logCallback);
+        JSObjectSetProperty(context, consoleObject, logFunctionName, logFunction, kJSPropertyAttributeNone, nullptr);
+        JSStringRelease(logFunctionName);
+
+        JSObjectSetProperty(context, JSContextGetGlobalObject(context), JSStringCreateWithUTF8CString("console"), consoleObject, kJSPropertyAttributeNone, nullptr);
+    }
+
+private:
+    JSContextRef context;
+    JSObjectRef consoleObject;
+};
+
+int main(int argc, const char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <javascript_file.js>" << std::endl;
         return 1;
@@ -25,16 +57,10 @@ int main(int argc, const char * argv[]) {
 
     // Initialize JavaScriptCore
     JSGlobalContextRef context = JSGlobalContextCreate(nullptr);
-    JSObjectRef globalObject = JSContextGetGlobalObject(context);
 
-    // Add a console.log() function to the JavaScript context
-    JSStringRef functionName = JSStringCreateWithUTF8CString("console");
-    JSObjectRef consoleObject = JSObjectMake(context, nullptr, nullptr);
-    JSObjectSetProperty(context, globalObject, functionName, consoleObject, kJSPropertyAttributeNone, nullptr);
-
-    JSStringRef logFunctionName = JSStringCreateWithUTF8CString("log");
-    JSObjectRef logFunction = JSObjectMakeFunctionWithCallback(context, logFunctionName, &JSLogCallback);
-    JSObjectSetProperty(context, consoleObject, logFunctionName, logFunction, kJSPropertyAttributeNone, nullptr);
+    // Create a Logger instance and attach it to the JavaScript context
+    Logger logger;
+    logger.attachToContext(context);
 
     // Load and execute the JavaScript file
     const char* filename = argv[1];
@@ -47,7 +73,7 @@ int main(int argc, const char * argv[]) {
     std::string scriptContent((std::istreambuf_iterator<char>(file)), (std::istreambuf_iterator<char>()));
     JSStringRef script = JSStringCreateWithUTF8CString(scriptContent.c_str());
     JSValueRef exception = nullptr;
-    JSEvaluateScript(context, script, nullptr, nullptr, 0, &exception);
+    JSValueRef result = JSEvaluateScript(context, script, nullptr, nullptr, 0, &exception);
 
     if (exception) {
         JSStringRef exceptionStr = JSValueToStringCopy(context, exception, nullptr);
