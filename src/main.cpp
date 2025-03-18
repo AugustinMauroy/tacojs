@@ -3,8 +3,13 @@
 #include <string>
 #include <JavaScriptCore/JavaScript.h>
 #include "ConsoleModule.h"
+#include "ShittyModule.h"
 
 JSValueRef loadModule(JSGlobalContextRef context, const char* filename) {
+    if (strncmp(filename, "taco:", 5) == 0) {
+        return loadInternalModule(context, filename + 5);
+    }
+
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "Failed to open the JavaScript file: " << filename << std::endl;
@@ -30,6 +35,16 @@ JSValueRef loadModule(JSGlobalContextRef context, const char* filename) {
     return result;
 }
 
+JSValueRef loadInternalModule(JSGlobalContextRef context, const char* moduleName) {
+    if (strcmp(moduleName, "shitty") == 0) {
+        attachToContext(context);
+        return JSValueMakeUndefined(context);
+    }
+
+    std::cerr << "Unknown internal module: " << moduleName << std::endl;
+    return nullptr;
+}
+
 int main(int argc, const char* argv[]) {
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <javascript_file.js>" << std::endl;
@@ -43,8 +58,11 @@ int main(int argc, const char* argv[]) {
     ConsoleModule logger;
     logger.attachToContext(context);
     ConsoleModule::attachToContext(context);
+
+    // Attach the ShittyModule to the JavaScript context
+    attachToContext(context);
+
     // Load and execute the JavaScript file
-    
     JSValueRef result = loadModule(context, argv[1]);
 
     // Cleanup

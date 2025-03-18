@@ -7,6 +7,7 @@ A shitty JS runtime based on JavascriptCore
 - Execute JavaScript files using JavaScriptCore.
 - Built-in `console` module with support for `log`, `info`, and `warn` methods.
 - ANSI color support for enhanced terminal output.
+- Support for importing internal modules with the `taco:` prefix.
 
 ## Getting Started
 
@@ -38,6 +39,15 @@ For example:
 
 ```bash
 ./taco examples/basic.js
+```
+
+### Using Internal Modules
+
+You can import internal modules using the `taco:` prefix. For example, to use the `shitty` module:
+
+```javascript
+const shitty = taco:shitty;
+shitty.greet(); // => "Hello from the ShittyModule!"
 ```
 
 ## Example
