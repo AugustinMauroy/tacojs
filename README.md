@@ -24,7 +24,7 @@ To build the project, follow these steps:
 2. Run the following command to compile the project:
 
    ```bash
-   g++ src/**.cpp -std=c++17 -I /System/Library/Frameworks/JavaScriptCore.framework -framework JavaScriptCore -o taco
+   g++ src/**/**.cpp -std=c++23 -o3 -I /System/Library/Frameworks/JavaScriptCore.framework -framework JavaScriptCore -o taco
    ```
 
 ### Running a JavaScript File
@@ -46,7 +46,8 @@ For example:
 You can import internal modules using the `taco:` prefix. For example, to use the `shitty` module:
 
 ```javascript
-const shitty = taco:shitty;
+import shitty from 'taco:shitty';
+
 shitty.greet(); // => "Hello from the ShittyModule!"
 ```
 
