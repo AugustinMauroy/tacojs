@@ -5,6 +5,16 @@
 #include "ConsoleModule.h"
 #include "ShittyModule.h"
 
+JSValueRef loadInternalModule(JSGlobalContextRef context, const char* moduleName) {
+    if (strcmp(moduleName, "shitty") == 0) {
+        attachToContext(context);
+        return JSValueMakeUndefined(context);
+    }
+
+    std::cerr << "Unknown internal module: " << moduleName << std::endl;
+    return nullptr;
+}
+
 JSValueRef loadModule(JSGlobalContextRef context, const char* filename) {
     if (strncmp(filename, "taco:", 5) == 0) {
         return loadInternalModule(context, filename + 5);
@@ -33,16 +43,6 @@ JSValueRef loadModule(JSGlobalContextRef context, const char* filename) {
 
     JSStringRelease(script);
     return result;
-}
-
-JSValueRef loadInternalModule(JSGlobalContextRef context, const char* moduleName) {
-    if (strcmp(moduleName, "shitty") == 0) {
-        attachToContext(context);
-        return JSValueMakeUndefined(context);
-    }
-
-    std::cerr << "Unknown internal module: " << moduleName << std::endl;
-    return nullptr;
 }
 
 int main(int argc, const char* argv[]) {
