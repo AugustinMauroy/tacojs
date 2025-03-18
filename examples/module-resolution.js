@@ -1,3 +1,3 @@
-import shitty from 'taco:shitty';
+import { greet } from 'taco:shitty';
 
-shitty.greet(); // => "Hello from the ShittyModule!"
+greet(); // => "Hello from the ShittyModule!"
