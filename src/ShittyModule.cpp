@@ -2,11 +2,11 @@
 #include <JavaScriptCore/JavaScript.h>
 #include <iostream>
 
-void greet(JSContextRef context, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[]) {
+void ShittyModule::greet(JSContextRef context, JSObjectRef thisObject, size_t argumentCount, const JSValueRef arguments[]) {
     std::cout << "Hello from the ShittyModule!" << std::endl;
 }
 
-void attachToContext(JSContextRef context) {
+void ShittyModule::attachToContext(JSContextRef context) {
     JSObjectRef globalObject = JSContextGetGlobalObject(context);
     JSObjectRef shittyModuleObject = JSObjectMake(context, nullptr, nullptr);
 

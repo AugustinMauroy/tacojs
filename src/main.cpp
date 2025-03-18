@@ -101,7 +101,7 @@ int main(int argc, const char* argv[]) {
 
     // Create and attach built-in modules
     ConsoleModule::attachToContext(context);
-    attachToContext(context); // ShittyModule
+    ShittyModule::attachToContext(context);
     
     // Setup module loader for ESM support
     setupModuleLoader(context);
