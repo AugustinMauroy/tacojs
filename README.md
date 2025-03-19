@@ -7,6 +7,7 @@ A shitty JS runtime based on JavascriptCore
 - Execute JavaScript files using JavaScriptCore.
 - Built-in `console` module with support for `log`, `info`, and `warn` methods.
 - ANSI color support for enhanced terminal output.
+- Support `WebAssembly` module.
 
 ## Getting Started
 
