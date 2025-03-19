@@ -32,7 +32,7 @@ namespace ModuleManager {
         JSStringRelease(pathStr);
 
         std::string moduleCode;
-        if (modulePath.substr(0, 5) == "foo::") {
+        if (modulePath.substr(0, 5) == "taco:") {
             std::string internalModule = modulePath.substr(5);
             moduleCode = "export default {}";
         } else if (modulePath.substr(0, 7) == "file://") {
