@@ -24,7 +24,7 @@ To build the project, follow these steps:
 2. Run the following command to compile the project:
 
    ```bash
-   g++ src/**.cpp -std=c++17 -I /System/Library/Frameworks/JavaScriptCore.framework -framework JavaScriptCore -o taco
+   g++ src/**.cpp -std=c++20 -I /System/Library/Frameworks/JavaScriptCore.framework -framework JavaScriptCore -o taco
    ```
 
 ### Running a JavaScript File

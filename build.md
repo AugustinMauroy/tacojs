@@ -1,7 +1,7 @@
 # How to build and run
 
 ```bash
- g++ src/**.cpp -std=c++17 -o3 -I /System/Library/Frameworks/JavaScriptCore.framework -framework JavaScriptCore -o taco
+ g++ src/**.cpp -std=c++20 -o3 -I /System/Library/Frameworks/JavaScriptCore.framework -framework JavaScriptCore -o taco
 ```
 
 ```bash
