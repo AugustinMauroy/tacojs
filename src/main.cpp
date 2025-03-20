@@ -7,6 +7,8 @@
 #include "ConsoleManager.h"
 #include "ModuleManager.h"
 #include "WebAssemblyManager.h"
+#include "AsyncManager.h"
+#include "TimerManager.h"
 
 namespace fs = std::filesystem;
 
@@ -28,6 +30,8 @@ int main(int argc, char* argv[]) {
     ConsoleManager::setupConsole(context, globalObj);
     ModuleManager::setupModuleLoader(context, globalObj);
     WebAssemblyManager::setupWebAssembly(context, globalObj);
+    AsyncManager::setupAsyncSupport(context, globalObj);
+    TimerManager::setupTimers(context, globalObj);
 
     try {
         std::string jsCode = readFile(filePath);
@@ -44,6 +48,9 @@ int main(int argc, char* argv[]) {
             std::cerr << "Exception: " << buffer << std::endl;
             delete[] buffer;
             JSStringRelease(exceptionStr);
+        } else {
+            // Run the event loop to process async operations
+            AsyncManager::runEventLoop(context);
         }
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
