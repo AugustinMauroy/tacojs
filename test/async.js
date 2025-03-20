@@ -39,4 +39,8 @@ const processData = async () => {
 
 processData(); // Processed: Data fetched after 2 seconds
 
+setTimeout(() => {
+  console.log('setTimeout');
+}, 0);
+
 console.log("Promise:", Promise);

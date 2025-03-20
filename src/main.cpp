@@ -36,19 +36,16 @@ int main(int argc, char* argv[]) {
     try {
         std::string jsCode = readFile(filePath);
         JSStringRef scriptJS = JSStringCreateWithUTF8CString(jsCode.c_str());
+        JSStringRef sourceURL = JSStringCreateWithUTF8CString(filePath.c_str());
         JSValueRef exception = nullptr;
-        JSValueRef result = JSEvaluateScript(context, scriptJS, nullptr, nullptr, 0, &exception);
-        JSStringRelease(scriptJS);
+        JSCheckScriptSyntax(context, scriptJS, sourceURL, 0, &exception);
 
         if (exception) {
-            JSStringRef exceptionStr = JSValueToStringCopy(context, exception, nullptr);
-            size_t bufferSize = JSStringGetMaximumUTF8CStringSize(exceptionStr);
-            char* buffer = new char[bufferSize];
-            JSStringGetUTF8CString(exceptionStr, buffer, bufferSize);
-            std::cerr << "Exception: " << buffer << std::endl;
-            delete[] buffer;
-            JSStringRelease(exceptionStr);
+            // Error handling
+            JSStringRelease(scriptJS);
         } else {
+            JSEvaluateScript(context, scriptJS, nullptr, sourceURL, 0, &exception);
+            JSStringRelease(scriptJS);
             // Run the event loop to process async operations
             AsyncManager::runEventLoop(context);
         }
