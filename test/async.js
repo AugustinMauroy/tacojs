@@ -11,13 +11,27 @@ const async = async () => {
 
 async().then(console.log); // async
 
-function* generator() {
-  yield 'generator';
+function* fibonacci() {
+  let a = 0;
+  let b = 1;
+  while (true) {
+    yield a;
+    [a, b] = [b, a + b];
+  }
 }
 
-const gen = generator();
+const gen = fibonacci();
 
-console.log(gen.next().value); // generator
+console.log(gen.next().value); // 0
+console.log(gen.next().value); // 1
+console.log(gen.next().value); // 1
+console.log(gen.next().value); // 2
+console.log(gen.next().value); // 3
+console.log(gen.next().value); // 5
+
+gen.return('done');
+
+console.log("gen.next().value",gen.next().value); // undefined
 
 const fetchData = async () => {
   return new Promise((resolve) => {

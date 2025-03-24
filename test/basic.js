@@ -40,3 +40,22 @@ class Animal {
 const animal = new Animal('Dog');
 
 console.log(animal.greet()); // => Hello, Dog!
+
+const map = new Map();
+map.set('key1', 'value1');
+map.set('key2', 'value2');
+
+console.log(map.get('key1')); // => value1
+console.log(map.has('key2')); // => true
+map.delete('key1');
+console.log(map.has('key1')); // => false
+
+const set = new Set();
+set.add(1);
+set.add(2);
+set.add(3);
+
+console.log(set.has(2)); // => true
+set.delete(2);
+console.log(set.has(2)); // => false
+console.log([...set]); // => [1, 3]
