@@ -8,8 +8,31 @@
 #include "WebAssemblyManager.h"
 #include "AsyncManager.h"
 #include "TimerManager.h"
+#include "ModuleManager.h"
 
 namespace fs = std::filesystem;
+
+namespace {
+    std::string jsValueToStdString(JSContextRef context, JSValueRef value) {
+        JSValueRef conversionException = nullptr;
+        JSStringRef strRef = JSValueToStringCopy(context, value, &conversionException);
+        if (!strRef) {
+            return "[unprintable exception]";
+        }
+
+        size_t bufferSize = JSStringGetMaximumUTF8CStringSize(strRef);
+        std::string result(bufferSize, '\0');
+        size_t used = JSStringGetUTF8CString(strRef, &result[0], bufferSize);
+        JSStringRelease(strRef);
+
+        if (used == 0) {
+            return "";
+        }
+
+        result.resize(used - 1);
+        return result;
+    }
+}
 
 std::string readFile(const std::string& path) {
     std::ifstream file(path);
@@ -42,33 +65,49 @@ int main(int argc, char* argv[]) {
     TimerManager::setupTimers(context, globalObj);
     WebAssemblyManager::setupWebAssembly(context, globalObj);
 
+    int exitCode = EXIT_SUCCESS;
+
     try {
         std::string jsCode = readFile(filePath);
-        JSStringRef scriptJS = JSStringCreateWithUTF8CString(jsCode.c_str());
-        JSStringRef sourceURL = JSStringCreateWithUTF8CString(filePath.c_str());
-        JSValueRef exception = nullptr;
-        JSCheckScriptSyntax(context, scriptJS, sourceURL, 0, &exception);
+        bool isModuleCandidate = (fs::path(filePath).extension() == ".js") && ModuleManager::looksLikeModule(jsCode);
 
-        if (exception) {
-            JSStringRef exString = JSValueToStringCopy(context, exception, nullptr);
-            size_t bufferSize = JSStringGetMaximumUTF8CStringSize(exString);
-            char* buffer = new char[bufferSize];
-            JSStringGetUTF8CString(exString, buffer, bufferSize);
-            std::cerr << "JavaScript Error: " << buffer << std::endl;
-            delete[] buffer;
-            JSStringRelease(exString);
-            return EXIT_FAILURE;
+        if (isModuleCandidate) {
+            std::string esmError;
+            if (!ModuleManager::evaluateEntryModule(context, filePath, esmError)) {
+                std::cerr << "JavaScript Runtime Error: " << esmError << std::endl;
+                exitCode = EXIT_FAILURE;
+            } else {
+                AsyncManager::runEventLoop(context);
+            }
         } else {
-            JSEvaluateScript(context, scriptJS, nullptr, sourceURL, 0, &exception);
+            JSStringRef scriptJS = JSStringCreateWithUTF8CString(jsCode.c_str());
+            JSStringRef sourceURL = JSStringCreateWithUTF8CString(filePath.c_str());
+            JSValueRef exception = nullptr;
+            JSCheckScriptSyntax(context, scriptJS, sourceURL, 0, &exception);
+
+            if (exception) {
+                std::cerr << "JavaScript Syntax Error: " << jsValueToStdString(context, exception) << std::endl;
+                exitCode = EXIT_FAILURE;
+            } else {
+                JSEvaluateScript(context, scriptJS, nullptr, sourceURL, 0, &exception);
+                if (exception) {
+                    std::cerr << "JavaScript Runtime Error: " << jsValueToStdString(context, exception) << std::endl;
+                    exitCode = EXIT_FAILURE;
+                } else {
+                    // Run the event loop to process async operations
+                    AsyncManager::runEventLoop(context);
+                }
+            }
+
             JSStringRelease(scriptJS);
-            // Run the event loop to process async operations
-            AsyncManager::runEventLoop(context);
+            JSStringRelease(sourceURL);
         }
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
+        exitCode = EXIT_FAILURE;
     }
 
     JSGlobalContextRelease(context);
 
-    return EXIT_SUCCESS;
+    return exitCode;
 }

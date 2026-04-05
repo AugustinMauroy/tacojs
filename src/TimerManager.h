@@ -10,6 +10,7 @@ namespace TimerManager {
     void setupTimers(JSContextRef ctx, JSObjectRef globalObj);
     void processTimers(JSContextRef ctx);
     bool hasActiveTimers();
+    int timeUntilNextTimerMs();
 }
 
 #endif // TIMERMANAGER_H

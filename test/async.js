@@ -36,8 +36,8 @@ console.log("gen.next().value",gen.next().value); // undefined
 const fetchData = async () => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve('Data fetched after 2 seconds');
-    }, 2000);
+      resolve('Data fetched after 0.5 seconds');
+    }, 500);
   });
 };
 
@@ -51,7 +51,7 @@ const processData = async () => {
   }
 };
 
-processData(); // Processed: Data fetched after 2 seconds
+processData(); // Processed: Data fetched after 0.5 seconds
 
 setTimeout(() => {
   console.log('setTimeout');
